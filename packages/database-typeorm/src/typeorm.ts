@@ -175,10 +175,12 @@ export class AccountsTypeorm implements DatabaseInterface {
 
   public async findUserByServiceId(serviceName: string, serviceId: string): Promise<User | null> {
     const service = await this.serviceRepository.findOne({
-      name: serviceName,
-      serviceId,
+      where: {
+        name: serviceName,
+        serviceId,
+      },
       cache: this.options.cache,
-    } as any);
+    });
 
     if (service) {
       return this.findUserById(service.userId);
@@ -277,17 +279,6 @@ export class AccountsTypeorm implements DatabaseInterface {
       },
       token
     );
-  }
-
-  public async setResetPassword(
-    userId: string,
-    email: string,
-    newPassword: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    token?: string
-  ): Promise<void> {
-    await this.setPassword(userId, newPassword);
-    await this.unsetService(userId, 'password.reset');
   }
 
   public async addEmail(userId: string, newEmail: string, verified: boolean): Promise<void> {

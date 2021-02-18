@@ -5,14 +5,6 @@ export interface AccountsMongoOptions {
    */
   collectionName?: string;
   /**
-   * The authenticators collection name, default 'authenticators'.
-   */
-  authenticatorCollectionName?: string;
-  /**
-   * The mfa challenges collection name, default 'mfaChallenges'.
-   */
-  mfaChallengeCollectionName?: string;
-  /**
    * The sessions collection name.
    * Default 'sessions'.
    */
@@ -36,16 +28,6 @@ export interface AccountsMongoOptions {
    */
   convertSessionIdToMongoObjectId?: boolean;
   /**
-   * Should the authenticator collection use _id as string or ObjectId.
-   * Default 'true'.
-   */
-  convertAuthenticatorIdToMongoObjectId?: boolean;
-  /**
-   * Should the mfa challenge collection use _id as string or ObjectId.
-   * Default 'true'.
-   */
-  convertMfaChallengeIdToMongoObjectId?: boolean;
-  /**
    * Perform case intensitive query for user name.
    * Default 'true'.
    */
@@ -59,35 +41,4 @@ export interface AccountsMongoOptions {
    * Default to `(date?: Date) => (date ? date.getTime() : Date.now())`.
    */
   dateProvider?: (date?: Date) => any;
-}
-
-export interface MongoUser {
-  _id?: string | object;
-  username?: string;
-  services: {
-    password?: {
-      bcrypt: string;
-    };
-  };
-  emails?: [
-    {
-      address: string;
-      verified: boolean;
-    }
-  ];
-  [key: string]: any;
-}
-
-export interface MongoAuthenticator {
-  _id?: string | object;
-  type?: string;
-  userId?: string;
-  [key: string]: any;
-}
-
-export interface MongoMfaChallenge {
-  _id?: string | object;
-  userId?: string;
-  authenticatorId?: string;
-  token: string;
 }

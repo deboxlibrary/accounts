@@ -1,6 +1,6 @@
 {
   "name": "accounts-js",
-  "version": "0.0.0",
+  "version": "0.31.1",
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
@@ -18,8 +18,8 @@
     "@mdx-js/react": "^1.6.21",
     "clsx": "1.1.1",
     "docusaurus-plugin-fathom": "1.1.0",
-    "react": "16.13.1",
-    "react-dom": "16.13.1"
+    "react": "17.0.1",
+    "react-dom": "17.0.1"
   },
   "browserslist": {
     "production": [

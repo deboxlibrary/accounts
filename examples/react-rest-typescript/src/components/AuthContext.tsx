@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { User, AuthenticationResult } from '@accounts/types';
+import { User } from '@accounts/types';
 import { accountsClient } from '../accounts';
 
 const AuthContext = React.createContext<{
   user?: User;
   fetchUser: () => Promise<void>;
-  loginWithService: (service: string, credentials: any) => Promise<AuthenticationResult>;
+  loginWithService: (service: string, credentials: any) => Promise<void>;
   logout: () => Promise<void>;
 }>({
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   fetchUser: async () => {},
-  loginWithService: async () => {
-    // Just to fix ts typechecking
-    return null as any;
-  },
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  loginWithService: async () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   logout: async () => {},
 });
 
@@ -29,11 +29,8 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const loginWithService = async (service: string, credentials: any) => {
-    const loginResponse = await accountsClient.loginWithService(service, credentials);
-    if ('tokens' in loginResponse) {
-      await fetchUser();
-    }
-    return loginResponse;
+    await accountsClient.loginWithService(service, credentials);
+    await fetchUser();
   };
 
   const logout = async () => {

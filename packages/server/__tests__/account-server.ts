@@ -1392,6 +1392,11 @@ describe('AccountsServer', () => {
           impersonationAuthorize: async (userObject, impersonateToUser) => {
             return userObject.id === user.id && impersonateToUser === impersonatedUser;
           },
+          tokenCreator: {
+            createToken: async () => {
+              return '123';
+            },
+          },
         },
         {}
       );
@@ -1418,7 +1423,7 @@ describe('AccountsServer', () => {
       );
       expect(res).toEqual({
         authorized: true,
-        tokens: { token: '001', isImpersonated: true },
+        tokens: { token: '123', isImpersonated: true },
         user: impersonatedUser,
       });
       expect(createSession).toHaveBeenCalledWith(
@@ -1452,7 +1457,14 @@ describe('AccountsServer', () => {
         {
           db: db as any,
           tokenSecret: 'secret1',
-          userObjectSanitizer: (user, omit) => omit(user, ['username']),
+          userObjectSanitizer: (user) => {
+            const {
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              username,
+              ...sanitizedUser
+            } = user;
+            return sanitizedUser;
+          },
         },
         {}
       );

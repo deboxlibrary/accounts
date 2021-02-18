@@ -1,5 +1,4 @@
 import { User } from './user';
-import { CreateUser } from './create-user';
 import { DatabaseInterfaceSessions } from './session/database-interface';
 import { DatabaseInterfaceServicePassword } from './services/password/database-interface';
 import { DatabaseInterfaceMfa } from './mfa/database-interface';
@@ -10,9 +9,6 @@ export interface DatabaseInterface<CustomUser extends User = User>
     DatabaseInterfaceMfa {
   // Find user by identity fields
   findUserById(userId: string): Promise<CustomUser | null>;
-
-  // Create and update users
-  createUser(user: CreateUser): Promise<string>;
 
   // Auth services related operations
   findUserByServiceId(serviceName: string, serviceId: string): Promise<CustomUser | null>;

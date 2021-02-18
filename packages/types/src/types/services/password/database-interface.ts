@@ -1,6 +1,9 @@
 import { User } from '../../user';
+import { CreateUserServicePassword } from './create-user';
 
 export interface DatabaseInterfaceServicePassword<CustomUser extends User = User> {
+  createUser(user: CreateUserServicePassword): Promise<string>;
+
   findUserByEmail(email: string): Promise<CustomUser | null>;
 
   findUserByUsername(username: string): Promise<CustomUser | null>;
@@ -20,13 +23,6 @@ export interface DatabaseInterfaceServicePassword<CustomUser extends User = User
     email: string,
     token: string,
     reason: string
-  ): Promise<void>;
-
-  setResetPassword(
-    userId: string,
-    email: string,
-    newPassword: string,
-    token: string
   ): Promise<void>;
 
   addEmail(userId: string, newEmail: string, verified: boolean): Promise<void>;
