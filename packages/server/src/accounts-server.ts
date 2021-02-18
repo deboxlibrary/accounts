@@ -1,4 +1,4 @@
-import { pick, omit, isString, merge } from 'lodash';
+import merge from 'lodash.merge';
 import * as jwt from 'jsonwebtoken';
 import Emittery from 'emittery';
 import {
@@ -31,6 +31,7 @@ import {
   LogoutErrors,
   ResumeSessionErrors,
 } from './errors';
+import { isString } from './utils/validation';
 
 const defaultOptions = {
   ambiguousErrorMessages: true,
@@ -162,10 +163,10 @@ Please set ambiguousErrorMessages to false to be able to use autologin.`
         );
       }
 
-      this.hooks.emit(ServerHooks.AuthenticateSuccess, hooksInfo);
+      await this.hooks.emit(ServerHooks.AuthenticateSuccess, hooksInfo);
       return true;
     } catch (err) {
-      this.hooks.emit(ServerHooks.AuthenticateError, { ...hooksInfo, error: err });
+      await this.hooks.emit(ServerHooks.AuthenticateError, { ...hooksInfo, error: err });
       throw err;
     }
   }
@@ -244,10 +245,10 @@ Please set ambiguousErrorMessages to false to be able to use autologin.`
       // Let the user validate the login attempt
       await this.hooks.emitSerial(ServerHooks.ValidateLogin, hooksInfo);
       const loginResult = await this.loginWithUser(user, infos);
-      this.hooks.emit(ServerHooks.LoginSuccess, hooksInfo);
+      await this.hooks.emit(ServerHooks.LoginSuccess, hooksInfo);
       return loginResult;
     } catch (err) {
-      this.hooks.emit(ServerHooks.LoginError, { ...hooksInfo, error: err });
+      await this.hooks.emit(ServerHooks.LoginError, { ...hooksInfo, error: err });
       throw err;
     }
   }
@@ -338,13 +339,13 @@ Please set ambiguousErrorMessages to false to be able to use autologin.`
         return { authorized: false };
       }
 
-      const token = generateRandomToken();
+      const token = await this.createSessionToken(impersonatedUser);
       const newSessionId = await this.db.createSession(impersonatedUser.id, token, infos, {
         impersonatorUserId: user.id,
       });
 
       const impersonationTokens = await this.createTokens({
-        token: newSessionId,
+        token,
         isImpersonated: true,
         user,
       });
@@ -354,14 +355,15 @@ Please set ambiguousErrorMessages to false to be able to use autologin.`
         user: this.sanitizeUser(impersonatedUser),
       };
 
-      this.hooks.emit(ServerHooks.ImpersonationSuccess, {
+      await this.hooks.emit(ServerHooks.ImpersonationSuccess, {
         user,
         impersonationResult,
+        sessionId: newSessionId,
       });
 
       return impersonationResult;
     } catch (e) {
-      this.hooks.emit(ServerHooks.ImpersonationError, e);
+      await this.hooks.emit(ServerHooks.ImpersonationError, e);
 
       throw e;
     }
@@ -427,14 +429,14 @@ Please set ambiguousErrorMessages to false to be able to use autologin.`
           user,
           infos,
         };
-        this.hooks.emit(ServerHooks.RefreshTokensSuccess, result);
+        await this.hooks.emit(ServerHooks.RefreshTokensSuccess, result);
 
         return result;
       } else {
         throw new AccountsJsError('Session is no longer valid', RefreshTokensErrors.InvalidSession);
       }
     } catch (err) {
-      this.hooks.emit(ServerHooks.RefreshTokensError, err);
+      await this.hooks.emit(ServerHooks.RefreshTokensError, err);
 
       throw err;
     }
@@ -488,7 +490,7 @@ Please set ambiguousErrorMessages to false to be able to use autologin.`
 
       if (session.valid) {
         await this.db.invalidateSession(session.id);
-        this.hooks.emit(ServerHooks.LogoutSuccess, {
+        await this.hooks.emit(ServerHooks.LogoutSuccess, {
           session,
           accessToken,
         });
@@ -496,7 +498,7 @@ Please set ambiguousErrorMessages to false to be able to use autologin.`
         throw new AccountsJsError('Session is no longer valid', LogoutErrors.InvalidSession);
       }
     } catch (error) {
-      this.hooks.emit(ServerHooks.LogoutError, error);
+      await this.hooks.emit(ServerHooks.LogoutError, error);
 
       throw error;
     }
@@ -550,11 +552,11 @@ Please set ambiguousErrorMessages to false to be able to use autologin.`
 
       await this.options.resumeSessionValidator?.(user, session!);
 
-      this.hooks.emit(ServerHooks.ResumeSessionSuccess, { user, accessToken, session });
+      await this.hooks.emit(ServerHooks.ResumeSessionSuccess, { user, accessToken, session });
 
       return this.sanitizeUser(user);
     } catch (error) {
-      this.hooks.emit(ServerHooks.ResumeSessionError, error);
+      await this.hooks.emit(ServerHooks.ResumeSessionError, error);
       throw error;
     }
   }
@@ -644,11 +646,17 @@ Please set ambiguousErrorMessages to false to be able to use autologin.`
       ? this.internalUserSanitizer(user)
       : user;
 
-    return userObjectSanitizer(baseUser, omit as any, pick as any);
+    return userObjectSanitizer(baseUser) as CustomUser;
   }
 
   private internalUserSanitizer(user: CustomUser): CustomUser {
-    return omit(user, ['services']) as any;
+    // Remove services from the user object
+    const {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      services,
+      ...sanitizedUser
+    } = user;
+    return sanitizedUser as any;
   }
 
   private defaultPrepareEmail(

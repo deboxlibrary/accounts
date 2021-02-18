@@ -104,10 +104,6 @@ export default class Database {
     return this.name;
   }
 
-  public setResetPassword() {
-    return this.name;
-  }
-
   public setUserDeactivated() {
     return this.name;
   }
@@ -185,7 +181,7 @@ describe('DatabaseManager configuration', () => {
 
 describe('DatabaseManager', () => {
   it('createUser should be called on userStorage', () => {
-    expect(databaseManager.createUser({})).toBe('userStorage');
+    expect(databaseManager.createUser({ email: 'test', password: 'test' })).toBe('userStorage');
   });
 
   it('findUserById should be called on userStorage', () => {
@@ -276,12 +272,6 @@ describe('DatabaseManager', () => {
 
   it('addResetPasswordToken should be called on sessionStorage', () => {
     expect(databaseManager.addResetPasswordToken('userId', 'email', 'token', 'reason')).toBe(
-      'userStorage'
-    );
-  });
-
-  it('setResetPassword should be called on sessionStorage', () => {
-    expect(databaseManager.setResetPassword('userId', 'email', 'password', 'token')).toBe(
       'userStorage'
     );
   });
